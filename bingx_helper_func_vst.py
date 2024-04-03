@@ -4,8 +4,8 @@ import hmac
 from hashlib import sha256
 
 APIURL = "https://open-api-vst.bingx.com"
-APIKEY = "YOUR_APIKEY"
-SECRETKEY = "YOUR_SECRETKEY"
+APIKEY = ""
+SECRETKEY = ""
 
 def get_sign(api_secret, payload):
     signature = hmac.new(api_secret.encode("utf-8"), payload.encode("utf-8"), digestmod=sha256).hexdigest()
@@ -23,10 +23,13 @@ def send_request(method, path, urlpa, payload):
     return response.text
 
 
-def praseParam(paramsMap):
+def parseParam(paramsMap):
     sortedKeys = sorted(paramsMap)
     paramsStr = "&".join(["%s=%s" % (x, paramsMap[x]) for x in sortedKeys])
-    return paramsStr+"&timestamp="+str(int(time.time() * 1000))
+    if paramsStr != "": 
+        return paramsStr+"&timestamp="+str(int(time.time() * 1000))
+    else:
+        return paramsStr+"timestamp="+str(int(time.time() * 1000))
 
 # ------------------------------- #
 # ------------------------------- #
@@ -34,7 +37,7 @@ def praseParam(paramsMap):
 # ------------ Below ------------ #
 # ------------------------------- #
 
-def BingX_trade_order_MARTKET_VST(symbol="BTC-USDT", action="BUY", quantity=0) :
+def open_order_demo(symbol="BTC-USDT", action="BUY", quantity=1) :
 
     payload = {}
     path = '/openApi/swap/v2/trade/order'
@@ -57,8 +60,28 @@ def BingX_trade_order_MARTKET_VST(symbol="BTC-USDT", action="BUY", quantity=0) :
         "timeInForce": ""
     } # paramsMap
 
-    paramsStr = praseParam(paramsMap)
+    paramsStr = parseParam(paramsMap)
     return send_request(method, path, paramsStr, payload)
+
+def open_market_order(symbol="BTC-USDT", action="BUY", quantity=1):
+    positionSide = ""
+    if action == "BUY" :
+        positionSide = "LONG"
+    else :
+        positionSide = "SHORT"
+    payload = {}
+    path = '/openApi/swap/v2/trade/order'
+    method = "POST"
+    paramsMap = {
+    "symbol": symbol,
+    "type": "MARKET",
+    "side": action,
+    "positionSide": positionSide,
+    "quantity": quantity,
+}
+    paramsStr = parseParam(paramsMap)
+    return send_request(method, path, paramsStr, payload)
+
 
 def BingX_trade_marginType(symbol="BTC-USDT", marginType="", recvWindow=0) :
 
@@ -72,59 +95,26 @@ def BingX_trade_marginType(symbol="BTC-USDT", marginType="", recvWindow=0) :
     "recvWindow": 0
     }   # paramsMap
 
-    paramsStr = praseParam(paramsMap)
+    paramsStr = parseParam(paramsMap)
     return send_request(method, path, paramsStr, payload)
 
-# Correspond : Open_market_by_quantity(symbol, action, entry, quantity, leverage, client)
-def BingX_trade_order(symbol="BTC-USDT", action="BUY", entry=1800.0, quantity=0 ) :
-
-    payload = {}
-    path = '/openApi/swap/v2/trade/order'
-    method = "POST"
-    
+def close_order(symbol="BTC-USDT", action="BUY", quantity=1):
     positionSide = ""
     if action == "BUY" :
         positionSide = "LONG"
     else :
         positionSide = "SHORT"
-
-    paramsMap = {
-        "symbol": symbol,
-        "side": action,
-        "price" : entry,
-        "positionSide": positionSide,
-        "type": "",
-        "quantity": quantity,
-        "takeProfit": ""
-    } # paramsMap
-
-    paramsStr = praseParam(paramsMap)
-    return send_request(method, path, paramsStr, payload)
-
-# Correspond : Close_specifiy_position(symbol, precision, client)
-def BingX_Close_A_Position(symbol="BTC-USDT", action="BUY", entry=1800.0, quantity=0 ) :
-
     payload = {}
     path = '/openApi/swap/v2/trade/order'
     method = "POST"
-    
-    positionSide = ""
-    if action == "BUY" :
-        positionSide = "SHORT"
-    else :
-        positionSide = "LONG"
-
     paramsMap = {
-        "symbol": symbol,
-        "side": action,
-        "price" : entry,
-        "positionSide": positionSide,
-        "type": "",
-        "quantity": quantity,
-        "takeProfit": ""
-    } # paramsMap
-
-    paramsStr = praseParam(paramsMap)
+    "symbol": symbol,
+    "type": "MARKET",
+    "side": "SELL",
+    "positionSide": positionSide,
+    "quantity": quantity,
+}
+    paramsStr = parseParam(paramsMap)
     return send_request(method, path, paramsStr, payload)
 
 def BingX_get_market_openInterest():
@@ -134,7 +124,7 @@ def BingX_get_market_openInterest():
     paramsMap = {
     "symbol": "BTC-USDT"
 }
-    paramsStr = praseParam(paramsMap)
+    paramsStr = parseParam(paramsMap)
     return send_request(method, path, paramsStr, payload)
 
 def BingX_get_position_info():
@@ -145,7 +135,7 @@ def BingX_get_position_info():
     "symbol": "BTC-USDT",
     "recvWindow": 0
 }
-    paramsStr = praseParam(paramsMap)
+    paramsStr = parseParam(paramsMap)
     return send_request(method, path, paramsStr, payload)
 
 
@@ -157,11 +147,9 @@ def BingX_close_all_position() :
         "recvWindow": 0
     } # paramsMap
 
-    paramsStr = praseParam(paramsMap)
+    paramsStr = parseParam(paramsMap)
     return send_request(method, path, paramsStr, payload)
 
 if __name__ == '__main__':
 
     print("Hi")
-    # Remember to change this code for testing...
-    # print("demo:", Your_function())
